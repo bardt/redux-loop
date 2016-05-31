@@ -50,7 +50,7 @@ export function install() {
     const store = next(liftReducer(reducer), initialModel, enhancer);
 
     const runEffect = (originalAction, effect) => {
-      const effectPromise = effectToPromise(effect)
+      const effectPromise = effectToPromise(effect, store)
         .then((actions) => {
           const lastActionIndex = actions.length - 1;
           return Promise.all(actions.map((action, index) => {

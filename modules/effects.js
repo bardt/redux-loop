@@ -3,6 +3,7 @@ import { throwInvariant, flatten } from './utils';
 const isEffectSymbol = Symbol('isEffect');
 
 const effectTypes = {
+  BUILd: 'BUILD',
   PROMISE: 'PROMISE',
   CALL: 'CALL',
   BATCH: 'BATCH',
@@ -15,9 +16,10 @@ const effectTypes = {
 /**
 * Runs an effect and returns the Promise for its completion.
 * @param {Object} effect The effect to convert to a Promise.
+* @param {Object} store The store entity, for the case we have to build an effect depending on store state 
 * @returns {Promise} The converted effect Promise.
 */
-export function effectToPromise(effect) {
+export function effectToPromise(effect, store) {
   if(process.env.NODE_ENV === 'development') {
     throwInvariant(
       isEffect(effect),
@@ -26,6 +28,8 @@ export function effectToPromise(effect) {
   }
 
   switch (effect.type) {
+    case effectTypes.BUILD:
+      return effectToPromise(effect.factory(store));
     case effectTypes.PROMISE:
       return effect.factory(...effect.args).then((action) => [action]);
     case effectTypes.CALL:
@@ -63,6 +67,19 @@ export function isNone(object) {
 export function none() {
   return {
     type: effectTypes.NONE,
+    [isEffectSymbol]: true
+  };
+}
+
+/**
+ * Creates an effect for a function that returns another effect.
+ * @param {Function} factory The function to invoke with the store entity that returns a another effect.
+ * @returns {Object} The wrapped effect of type BUILD.
+ */
+export function build(factory) {
+  return {
+    factory,
+    type: effectTypes.BUILD,
     [isEffectSymbol]: true
   };
 }

@@ -6,6 +6,7 @@ import {
 } from './loop';
 
 import {
+  build,
   batch,
   none,
   constant,
@@ -24,6 +25,7 @@ import {
 
 
 const Effects = {
+  build,
   constant,
   promise,
   call,
