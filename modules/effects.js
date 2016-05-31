@@ -16,7 +16,7 @@ const effectTypes = {
 /**
 * Runs an effect and returns the Promise for its completion.
 * @param {Object} effect The effect to convert to a Promise.
-* @param {Object} store The store entity, for the case we have to build an effect depending on store state 
+* @param {Object} store The store entity, for the case we have to build an effect depending on store state
 * @returns {Promise} The converted effect Promise.
 */
 export function effectToPromise(effect, store) {
@@ -29,19 +29,19 @@ export function effectToPromise(effect, store) {
 
   switch (effect.type) {
     case effectTypes.BUILD:
-      return effectToPromise(effect.factory(store));
+      return effectToPromise(effect.factory(store), store);
     case effectTypes.PROMISE:
       return effect.factory(...effect.args).then((action) => [action]);
     case effectTypes.CALL:
       return Promise.resolve([effect.factory(...effect.args)]);
     case effectTypes.BATCH:
-      return Promise.all(effect.effects.map(effectToPromise)).then(flatten);
+      return Promise.all(effect.effects.map(e => effectToPromise(e, store))).then(flatten);
     case effectTypes.CONSTANT:
       return Promise.resolve([effect.action]);
     case effectTypes.NONE:
       return Promise.resolve([]);
     case effectTypes.LIFT:
-      return effectToPromise(effect.effect).then((actions) =>
+      return effectToPromise(effect.effect, store).then((actions) =>
         actions.map((action) => effect.factory(...effect.args, action))
       );
   }
